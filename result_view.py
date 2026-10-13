@@ -22,6 +22,7 @@ def trade_view(frame):
             value=value.where(value.notna() if numeric else (value.notna() & value.ne('')),source)
         return value
     out['Hisse']=first(['HISSE','symbol','SYMBOL','Sembol','ticker'],False)
+    out['Puan']=pd.to_numeric(frame[score],errors='coerce') if score else np.nan
     out['Giriş Fiyatı']=first(['TETIK_GIRIS','CANLI_GIRIS','GIRIS','entry','FIYAT','KAPANIS'])
     out['Hedef Fiyatı']=first(['HEDEF','target','H1'])
     out['Stop Loss']=first(['STOP','stop','YAPI_BOZULMA'])

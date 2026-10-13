@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 
 def run(scan,tf='15m',start='2026-04-01',end='2026-08-31',symbol='',mode='both'):
-    import master_scanner as m
+    import web_engines as m
     import candidate_memory as memory
     import web_cache
     web_cache.install(Path(__file__).parent/'web_data'/'cache')

@@ -7,6 +7,7 @@ import pandas as pd
 import yfinance as yf
 from symbols import get_bist_symbols
 from v19_paths import result_file
+from daily_trade_plan import trade_plan
 
 IST=ZoneInfo('Europe/Istanbul')
 VERSION='V33-FIX4-ERKEN-PATLAMA-TAVAN-DEVAM'
@@ -155,14 +156,15 @@ def _score(x):
             'SINYAL':'+'.join(tags) or 'TAKIP','GIRIS':float(r.Close),'RET1_%':float(r.RET1),
             'RET5_%':float(r.RET5),'RET10_%':float(r.RET10),'RVOL':float(r.RVOL),
             'DIST_R20_%':float(r.DIST_R20),'CLV':float(r.CLV),'CONTRACT':float(r.CONTRACT),
-            'VERI_TARIHI':pd.Timestamp(r.name).strftime('%Y-%m-%d')}
+            'VERI_TARIHI':pd.Timestamp(r.name).strftime('%Y-%m-%d'),
+            **trade_plan(x)}
 
 def main():
     now=datetime.now(IST)
     print('\n'+'='*128)
     print(f'{VERSION} | V33 BIRLESIK GUN SONU TOP10')
     print(f'Tarama zamani: {now:%Y-%m-%d %H:%M}')
-    print('Kural: Seans icinde hareket eden SON GUNLUK SATIR kosulsuz silinir.')
+    print('Kural: 18:10 oncesi bugunun acik mumu dislanir; son mevcut tamamlanmis kapanis kullanilir.')
     print('Yeni: PATLAMA_ERKEN + TAVAN_DEVAM kapilari; klasik V33 A/B/C korunur.')
     print('='*128)
     rows=[]; syms=get_bist_symbols()

@@ -105,6 +105,17 @@ def status():
         try:
             df=pd.read_csv(selected,encoding='utf-8-sig')
             shown=trade_view(df) if any(c in df for c in ['HISSE','symbol','SYMBOL','Sembol','ticker']) else df
+            if 'VERI_TARIHI' in df:
+                dates=sorted(df['VERI_TARIHI'].dropna().astype(str).unique())
+                st.caption('Kullanılan kapanış tarihi: '+', '.join(dates))
+                from datetime import datetime
+                from zoneinfo import ZoneInfo
+                now=datetime.now(ZoneInfo('Europe/Istanbul'))
+                expected=pd.Timestamp(now.date()) if (now.hour,now.minute)>=(18,10) else pd.Timestamp(now.date())-pd.offsets.BDay(1)
+                if dates and pd.to_datetime(dates[-1])<expected:
+                    st.warning('Son veri beklenen hafta içi kapanışından eski. Tatil veya sağlayıcı gecikmesi olabilir; listeyi bugünün güncel adayı olarak değerlendirme.')
+            if 'GIRIS_TURU' in df and (df.GIRIS_TURU=='SON_TAMAMLANMIS_KAPANIS').any():
+                st.caption('Giriş son kapanış referansıdır. Hedef: eski direnç veya 2 ATR; stop: son 5 mum dip yapısı altında ATR payı. Gerçekleşmiş işlem veya tavan garantisi değildir.')
             st.dataframe(shown,use_container_width=True,hide_index=True)
             if 'Hedef Fiyatı' in shown and (shown['Hedef Fiyatı'].isna().any() or shown['Stop Loss'].isna().any()):
                 st.caption('Hedef veya stop üretmeyen motorlarda ilgili alan boş kalır.')
