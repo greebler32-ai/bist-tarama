@@ -1,0 +1,5 @@
+web_data
+__pycache__
+.streamlit/secrets.toml
+.env
+.git

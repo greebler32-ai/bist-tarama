@@ -1,0 +1,9 @@
+BIST WEB 1.0 DOGRULAMA
+34 unittest gecti.
+28 web motor yonlendirmesi input beklemeden test edildi.
+Streamlit AppTest ile uygulama acilisi ve tarama dugmesi kontrol edildi.
+Ortak kuyruk, is sahipligi, veri onbellegi ve motor hesap testleri gecti.
+Gercek alt surecte hafiza CSV uretimi kontrol edildi.
+Gercek Yahoo/iTick piyasa baglantisi dogrulanmadi.
+Herkese acik bir sunucuya henuz yayinlanmadi.
+Yerel ve sunucu kurulum bilgileri README.md icinde.
