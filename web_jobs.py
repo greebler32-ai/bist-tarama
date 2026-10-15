@@ -63,7 +63,7 @@ class Jobs:
             try:
                 results=self.root/'results';results.mkdir(exist_ok=True)
                 before={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in results.glob('*.csv')}
-                env=os.environ.copy();env.update(j['env']);env['BIST_RESULTS_DIR']=str(results.resolve());env['PYTHONUNBUFFERED']='1'
+                env=os.environ.copy();env.update(j['env']);env['BIST_RESULTS_DIR']=str(results.resolve());env['PYTHONUNBUFFERED']='1';env['BIST_JOB_REPORT']=str((j['folder']/'veri_durumu.json').resolve())
                 with (j['folder']/'output.log').open('wb') as out:
                     cmd=[sys.executable,str(Path(__file__).parent/'web_worker.py'),'--params',json.dumps(j['params']),'--output',str(j['folder']/'sonuc.csv')]
                     with self.lock:
@@ -82,7 +82,12 @@ class Jobs:
                             dest=j['folder']/p.name;dest.write_bytes(p.read_bytes())
                     with self.lock:
                         j['files']=list(j['folder'].glob('*.csv'))
-                        if j['state']!='Durduruldu':j['state']='Tamamlandi' if rc==0 else 'Sure doldu' if rc==124 else 'Hata'
+                        report={}
+                        try:report=json.loads((j['folder']/'veri_durumu.json').read_text(encoding='utf-8'))
+                        except (OSError,ValueError):pass
+                        j['report']=report
+                        from web_cache import finish_state
+                        if j['state']!='Durduruldu':j['state']=finish_state(rc,report)
                         j['finished']=time.time();j['env']={}
             except Exception as exc:
                 with self.lock:j['state']='Hata';j['error']=str(exc)

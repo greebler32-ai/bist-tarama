@@ -9,6 +9,7 @@ import pandas as pd
 import yfinance as yf
 
 import v19_2_canli as live
+import v19_3_tavan_radar as radar
 import v33_eod_combined as v33_eod
 import erken3g_havuz as erken3g
 import patlama_oncesi_havuz as patlama
@@ -27,7 +28,12 @@ RUN_LOG = "TUM_TARAMALAR_OTOMATIK_CALISMA_LOG.csv"
 SUMMARY = "TUM_CANLI_MOTOR_BASARI_OZETI.csv"
 EOD_LEDGER = "V33_GUN_SONU_ADAY_YASAM_DONGUSU.csv"
 
-LIVE_ENGINES = (("V20_DONUS_AVCISI", live.reversal_main),)
+LIVE_ENGINES = (
+    ("V19_2_CANLI_TRADE", lambda: live.momentum_main("15m")),
+    ("V19_2_CANLI_TAVAN", lambda: live.tavan_main("15m")),
+    ("V20_DONUS_AVCISI", live.reversal_main),
+    ("V19_3_TAVAN_RADAR", lambda: radar.main("15m")),
+)
 EOD_ENGINES = (
     ("V33_GUN_SONU_TOP10", v33_eod.main),
     ("ERKEN3G_HAVUZ", erken3g.main),

@@ -1,5 +1,7 @@
 # BIST Tarama Kılavuzu
 
+Veri durumu: Veri alınamadı = seçim yapılamadı; Kısmi sonuç = yalnız veri gelen bölüm değerlendirildi; Tamamlandı = iş bitti, başarı garantisi değildir. Veri isteği sayıları hisse sayısı değil indirme çağrılarıdır.
+
 Önerilen akış: Günlük Top10 veya Uyuyan Hisseler → Balina + Erken Teyit → Sonuç Güncelle → Başarı Özeti.
 
 ## Günlük Top10
@@ -61,6 +63,36 @@
 **Nasıl okunur?** CANLI TEYİT BEKLİYOR hazırlık; GİRİŞ TETİKLENDİ tamamlanmış bar ve hacim/yön koşullarının birlikte sağlanmasıdır. SEANS DIŞI veya VERİ TEYİDİ BEKLİYOR giriş değildir.
 
 **Ne zaman kullanılır?** Hazırlık havuzunu gün içi teyitle daraltmak için kullan. Günlük referans ve canlı tetik fiyatı ayrı saklanır.
+
+## Canlı Trade
+
+**Ne arar?** Gün içinde hacim, fiyat yönü ve momentum birlikte güçlenen trade adaylarını arar.
+
+**Veri:** Yahoo gecikmeli 15 dakikalık mumlar.
+
+**Nasıl okunur?** Giriş, hedef ve stop motorun referans seviyeleridir; pozisyon açıldığı anlamına gelmez.
+
+**Ne zaman kullanılır?** Seans içinde kısa vadeli hareketleri taramak için kullan.
+
+## Canlı Tavan
+
+**Ne arar?** Gün içinde güçlü hacim, VWAP, yön ve momentum birlikteliği gösteren tavan adaylarını arar.
+
+**Veri:** Yahoo gecikmeli 15 dakikalık mumlar.
+
+**Nasıl okunur?** Yüksek puan tavan garantisi değildir. Hacim/VWAP/yön şartları birlikte değerlendirilir.
+
+**Ne zaman kullanılır?** Günlük Top10’dan farklı olarak gün içinde gelişen güçlenmeyi aramak için kullan.
+
+## Tavan Radarı
+
+**Ne arar?** Canlıda tavan yönünde güçlenme ve devam teyidi gösteren hisseleri radar listesine alır.
+
+**Veri:** Yahoo gecikmeli 15 dakikalık mumlar.
+
+**Nasıl okunur?** Radar adayı kesin giriş emri değildir; son mum ve veri zamanı kontrol edilmelidir.
+
+**Ne zaman kullanılır?** Canlı tavan adaylarını ayrı radar koşullarıyla izlemek için kullan.
 
 ## Top10 Başarı Testi
 

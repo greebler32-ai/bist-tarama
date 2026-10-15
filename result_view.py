@@ -26,7 +26,12 @@ def trade_view(frame):
     out['Giriş Fiyatı']=first(['TETIK_GIRIS','CANLI_GIRIS','GIRIS','entry','FIYAT','KAPANIS'])
     out['Hedef Fiyatı']=first(['HEDEF','target','H1'])
     out['Stop Loss']=first(['STOP','stop','YAPI_BOZULMA'])
-    entry=out['Giriş Fiyatı'];target=out['Hedef Fiyatı']
+    entry=out['Giriş Fiyatı'];target=out['Hedef Fiyatı'];stop=out['Stop Loss']
+    valid=(entry>0)&(stop>0)&(stop<entry)&(target>entry)
+    out['Giriş Fiyatı']=entry.where(entry>0)
+    out['Hedef Fiyatı']=target.where(valid)
+    out['Stop Loss']=stop.where(valid)
+    target=out['Hedef Fiyatı']
     out['Kazanç %']=((target/entry.where(entry>0))-1)*100
     clean=out.replace([np.inf,-np.inf],np.nan)
     return clean.astype(object).where(clean.notna(),'—')

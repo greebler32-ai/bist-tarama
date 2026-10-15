@@ -28,9 +28,9 @@ if 'owner' not in st.session_state:st.session_state.owner=uuid.uuid4().hex
 owner=st.session_state.owner
 with st.sidebar:
     st.title('📈 BIST Atölyesi')
-    st.caption('6 ana tarama · WEB 6')
-    area=st.radio('Bölüm',['Ana taramalar','Test ve takip araçları'])
-    catalog=SCANS if area=='Ana taramalar' else TOOLS
+    st.caption('Günlük ve canlı taramalar · WEB 8')
+    area=st.radio('Bölüm',['Günlük taramalar','Canlı taramalar','Test ve takip araçları'])
+    catalog={n:v for n,v in SCANS.items() if v[1]==('Günlük' if area=='Günlük taramalar' else 'Canlı')} if area!='Test ve takip araçları' else TOOLS
     choices=list(catalog)
     scan=st.selectbox('Tarama',choices,format_func=lambda n:catalog[n][0])
     st.divider()
@@ -96,10 +96,18 @@ def status():
     job=jobs.get(jid)
     if not job:st.warning('Bu iş artık listede yok.');return
     st.subheader('Tarama durumu')
-    state=job['state'];st.write({'Sirada':'⏳ Sırada','Calisiyor':'🔄 Çalışıyor','Tamamlandi':'✅ Tamamlandı','Hata':'⚠️ Hata','Durduruldu':'⏹ Durduruldu','Sure doldu':'⌛ Süre doldu'}.get(state,state))
+    state=job['state'];st.write({'Sirada':'⏳ Sırada','Calisiyor':'🔄 Çalışıyor','Tamamlandi':'✅ Tamamlandı','Kismi':'⚠️ Kısmi sonuç · bazı veriler alınamadı','Veri alinamadi':'⛔ Veri alınamadı · tarama doğrulanamadı','Hata':'⚠️ Hata','Durduruldu':'⏹ Durduruldu','Sure doldu':'⌛ Süre doldu'}.get(state,state))
     if state in ('Sirada','Calisiyor') and st.button('Bu taramayı durdur',key='stop'):
         jobs.cancel(jid,owner,admin);st.rerun(scope='fragment')
     text=jobs.log(jid);text=re.sub(r'\x1b\[[0-9;?]*[A-Za-z]','',text)
+    report=job.get('report',{})
+    if state=='Calisiyor':
+        try:report=__import__('json').loads((job['folder']/'veri_durumu.json').read_text(encoding='utf-8'))
+        except (OSError,ValueError):pass
+    if report.get('istek'):
+        st.caption(f"Veri isteği: {report['istek']} · Veri alınan: {report['basarili']} · Alınamayan: {report['basarisiz']} · Önbellek: {report['onbellek']}")
+    if state=='Veri alinamadi':st.error('Hiç kullanılabilir kapanış verisi alınamadı. Bu sonuç aday yok demek değildir. Veri hata raporunu kontrol et.')
+    elif state=='Kismi':st.warning('Liste eksik veriyle üretildi; tüm hisse evreninin tarandığı kabul edilemez.')
     if state=='Hata':st.error(job.get('error','Tarama tamamlanamadı. Veri sağlayıcı mesajını kontrol et.'))
     if state=='Calisiyor':
         st.status('Tarama devam ediyor · durum 3 saniyede bir yenilenir',state='running',expanded=True)
@@ -123,7 +131,10 @@ def status():
             shown=show_frame(df,selected)
             kind=result_kind(df,selected)
             if kind=='error':st.warning('Bu dosya veri hata raporudur; aday listesi değildir.')
-            elif kind=='candidates' and df.empty:st.info('Koşullara uyan aday yok.')
+            elif df.empty and kind!='error':
+                if state=='Veri alinamadi':st.info('Veri olmadığı için aday seçimi yapılamadı.')
+                elif state=='Kismi':st.info('Alınabilen verilerde aday yok; eksik veriler nedeniyle sonuç kısmi.')
+                else:st.info('Bu sonuç dosyasında aday veya kayıt yok.')
             if 'VERI_TARIHI' in df:
                 dates=sorted(df['VERI_TARIHI'].dropna().astype(str).unique())
                 st.caption('Kullanılan kapanış tarihi: '+', '.join(dates))

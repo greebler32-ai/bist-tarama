@@ -12,6 +12,9 @@ def run(scan,tf='15m',start='2026-04-01',end='2026-08-31',symbol='',mode='both')
     web_cache.install(Path(__file__).parent/'web_data'/'cache')
     result=None;engine=f'WEB_{scan}'
     if scan==9:result=m.v33_eod.main();engine='V33_TOP10'
+    elif scan==10:result=m.live.momentum_main('15m')
+    elif scan==11:result=m.live.tavan_main('15m')
+    elif scan==13:result=m.radar.main('15m')
     elif scan==12:result=m.live.reversal_main()
     elif scan==16:
         from datetime import datetime

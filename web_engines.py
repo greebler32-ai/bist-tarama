@@ -1,5 +1,6 @@
 """Sade web surumunun calisma bagimliliklari."""
 import v19_2_canli as live
+import v19_3_tavan_radar as radar
 import v33_eod_combined as v33_eod
 import v20_auto_forward as v20_auto
 import v34_itick_live as itick_live

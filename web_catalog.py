@@ -1,9 +1,13 @@
 # Kimlikler eski kayitlarla uyum icin korunur; menu sirasi sade isimlerle gosterilir.
 SCANS={9:('Günlük Top10','Günlük'),20:('Uyuyan Hisseler','Günlük'),18:('Patlama Öncesi','Günlük'),12:('Dönüş Avcısı','Canlı'),26:('Balina İzi','Günlük'),28:('Balina + Erken Teyit','Canlı')}
+SCANS.update({10:('Canlı Trade','Canlı'),11:('Canlı Tavan','Canlı'),13:('Tavan Radarı','Canlı')})
 TOOLS={19:('Top10 Başarı Testi','Test'),21:('Uyuyan Havuzu Başarı Testi','Test'),24:('Tarama Hafızası','Kayıtlar'),25:('Sonuç ve Hedef Güncelle','Kayıtlar'),27:('Başarı Özeti','Kayıtlar'),17:('iTick · Canlı Top3 Takibi','iTick'),16:('Otomatik Ana Motorlar','Otomatik')}
 ALL_SCANS={**SCANS,**TOOLS}
 TIMEFRAMES={}
 GUIDES={
+10:('Gün içinde hacim, fiyat yönü ve momentum birlikte güçlenen trade adaylarını arar.','Yahoo gecikmeli 15 dakikalık mumlar.','Giriş, hedef ve stop motorun referans seviyeleridir; pozisyon açıldığı anlamına gelmez.','Seans içinde kısa vadeli hareketleri taramak için kullan.'),
+11:('Gün içinde güçlü hacim, VWAP, yön ve momentum birlikteliği gösteren tavan adaylarını arar.','Yahoo gecikmeli 15 dakikalık mumlar.','Yüksek puan tavan garantisi değildir. Hacim/VWAP/yön şartları birlikte değerlendirilir.','Günlük Top10’dan farklı olarak gün içinde gelişen güçlenmeyi aramak için kullan.'),
+13:('Canlıda tavan yönünde güçlenme ve devam teyidi gösteren hisseleri radar listesine alır.','Yahoo gecikmeli 15 dakikalık mumlar.','Radar adayı kesin giriş emri değildir; son mum ve veri zamanı kontrol edilmelidir.','Canlı tavan adaylarını ayrı radar koşullarıyla izlemek için kullan.'),
 9:('Ertesi işlem seansı için en güçlü en fazla 10 adayı sıralar.','Seans içinde son mevcut tamamlanmış günlük mum; 18.10 sonrası bugünkü kapanış mevcutsa o kullanılır.','Puan seçimin sırasını gösterir; başarı olasılığı değildir. Giriş son kapanıştır. Hedef eski direnç, uygun direnç yoksa 2 ATR; stop son beş mum dip yapısının altıdır.','Günün Top10 adaylarını görmek istediğinde kullan. Tavan garantisi veya otomatik alım değildir.'),
 20:('Henüz sert hareket yapmamış, sıkışan veya dinlenmesi bitmeye yaklaşan hisseleri arar.','Tamamlanmış günlük mumlar. Sonuçta kullanılan kapanış tarihine bak.','HAZIRLIK/UYKU-SONU erken aşamadır; UYANIŞ hacim ve zamanlama güçlenmesidir. Kalıcı havuz geçmişi ve balina iziyle birlikte okunur.','Hareketten önce hazırlık listesi oluşturmak için kullan. İlk üç seans fiyat hareketi ayrıca ölçülür.'),
 18:('Uzun dinlenme, düşüşün durması, daralma ve hacim uyanışı birlikteliğini arar.','Tamamlanmış günlük mumlar.','ERKEN, HAZIRLANIYOR ve ATEŞLEME hazırlık dereceleridir. Sade tabloda ilk hedef H1; ayrıntılı hafızada H2/H3 ve yapı bozulması da tutulur.','Daha geniş patlama hazırlık havuzunu ve teknik hedef bölgelerini görmek için kullan. ERKEN-3G ile aynı filtre değildir.'),
@@ -19,7 +23,7 @@ GUIDES={
 16:('Ana günlük motorları ve Dönüş Avcısını topluca çalıştırır.','Her motorun kendi günlük/15 dakika verisi.','Düğme bir kez çalıştırır. Yönetici bölümündeki 20 seans planı saatli tekrarları açar.','Toplu çalışma için kullan. Sunucu açık kalmalı; yeniden başlatmada plan tekrar açılır.')}
 
 def guide_markdown():
-    text='# BIST Tarama Kılavuzu\n\nÖnerilen akış: Günlük Top10 veya Uyuyan Hisseler → Balina + Erken Teyit → Sonuç Güncelle → Başarı Özeti.\n\n'
+    text='# BIST Tarama Kılavuzu\n\nVeri durumu: Veri alınamadı = seçim yapılamadı; Kısmi sonuç = yalnız veri gelen bölüm değerlendirildi; Tamamlandı = iş bitti, başarı garantisi değildir. Veri isteği sayıları hisse sayısı değil indirme çağrılarıdır.\n\nÖnerilen akış: Günlük Top10 veya Uyuyan Hisseler → Balina + Erken Teyit → Sonuç Güncelle → Başarı Özeti.\n\n'
     for key,(name,_) in ALL_SCANS.items():
         purpose,data,reading,when=GUIDES[key]
         text+=f'## {name}\n\n**Ne arar?** {purpose}\n\n**Veri:** {data}\n\n**Nasıl okunur?** {reading}\n\n**Ne zaman kullanılır?** {when}\n\n'
