@@ -207,8 +207,8 @@ def main():
     print('-'*72)
     print('Teknik motor detaylari ve sinyaller CSV dosyasinda kayitlidir.')
     fn=f'V33_GUN_SONU_TOP10_{now:%Y%m%d_%H%M}.csv'
-    df.assign(TARAMA_ZAMANI=now.strftime('%Y-%m-%d %H:%M')).to_csv(result_file(fn),index=False,encoding='utf-8-sig')
+    top.assign(TARAMA_ZAMANI=now.strftime('%Y-%m-%d %H:%M')).to_csv(result_file(fn),index=False,encoding='utf-8-sig')
     print('\nKaydedildi:',result_file(fn))
-    return df
+    return top
 
 if __name__=='__main__': main()

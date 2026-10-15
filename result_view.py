@@ -28,4 +28,5 @@ def trade_view(frame):
     out['Stop Loss']=first(['STOP','stop','YAPI_BOZULMA'])
     entry=out['Giriş Fiyatı'];target=out['Hedef Fiyatı']
     out['Kazanç %']=((target/entry.where(entry>0))-1)*100
-    return out
+    clean=out.replace([np.inf,-np.inf],np.nan)
+    return clean.astype(object).where(clean.notna(),'—')

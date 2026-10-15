@@ -9,6 +9,7 @@ import yfinance as yf
 
 from symbols import get_bist_symbols
 from v19_paths import result_file
+from daily_trade_plan import trade_plan
 
 IST = ZoneInfo('Europe/Istanbul')
 VERSION = 'ERKEN-3G-V4-DINLENME-SIKISMA-MERDIVEN'
@@ -383,6 +384,7 @@ def _score(x):
         'CLV': float(r.CLV),
         'SINYAL': '+'.join(tags) if tags else 'HAZIRLIK',
         'VERI_TARIHI': pd.Timestamp(r.name).strftime('%Y-%m-%d'),
+        **trade_plan(x),
     }
 
 

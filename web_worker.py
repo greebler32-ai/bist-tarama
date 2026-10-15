@@ -4,23 +4,15 @@ from pathlib import Path
 import pandas as pd
 
 def run(scan,tf='15m',start='2026-04-01',end='2026-08-31',symbol='',mode='both'):
+    from web_catalog import ALL_SCANS
+    if scan not in ALL_SCANS:raise ValueError('Bu eski tarama sade surumden kaldirildi.')
     import web_engines as m
     import candidate_memory as memory
     import web_cache
     web_cache.install(Path(__file__).parent/'web_data'/'cache')
-    # Web ziyaretcileri eski Telegram kanalina mesaj gondermez.
-    for _,mod,_ in m.STRATEGIES:
-        if hasattr(mod,'send_telegram'):mod.send_telegram=lambda *a,**k:None
     result=None;engine=f'WEB_{scan}'
-    if 1<=scan<=7:result=m.run_single(scan,tf,tf)
-    elif scan==8:result=m.run_master(tf,tf)
-    elif scan==9:result=m.v33_eod.main();engine='V33_TOP10'
-    elif scan==10:result=m.live.momentum_main()
-    elif scan==11:result=m.live.tavan_main()
+    if scan==9:result=m.v33_eod.main();engine='V33_TOP10'
     elif scan==12:result=m.live.reversal_main()
-    elif scan==13:result=m.radar.main()
-    elif scan==14:result=m.v32_eod.main()
-    elif scan==15:result=m.v32_live.main()
     elif scan==16:
         from datetime import datetime
         from zoneinfo import ZoneInfo
@@ -37,11 +29,6 @@ def run(scan,tf='15m',start='2026-04-01',end='2026-08-31',symbol='',mode='both')
     elif scan==19:m.v33_sep_test.main(start,end);return
     elif scan==20:result=m.erken3g.main();engine='ERKEN3G_TOP10'
     elif scan==21:m.erken3g_test.main(start,end);return
-    elif scan==22:result=m.erken3g_live.main()
-    elif scan==23:
-        if not os.environ.get('ITICK_KEY'):raise ValueError('Sunucuda ITICK_KEY tanimli degil.')
-        result=m.erken3g_live.main()
-        if result is not None and not result.empty:m.itick_live.itick_external(result,'ERKEN3G_DONUS_KESISIM')
     elif scan==24:
         if symbol:result=memory.search_symbol(symbol)
         else:result=memory.recent(200)

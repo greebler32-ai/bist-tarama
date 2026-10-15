@@ -24,7 +24,9 @@ def analyse(bars, symbol):
     distribution = rvol>=1.5 and cmf<-.10 and obv_delta<-.20 and pos<=.35
     state = 'DAGITIM_IZI' if distribution else 'GUCLU_ALIM_IZI' if score>=85 else 'BIRIKIM_ADAYI' if score>=60 else 'BELIRGIN_IZ_YOK'
     if state == 'BELIRGIN_IZ_YOK': return None
-    return {'HISSE':symbol.removesuffix('.IS'),'VERI_TARIHI':str(x.index[-1].date()),'FIYAT':round(float(c.iloc[-1]),4), 'BALINA_IZI_SKOR':score,'ADAY_TIPI':state,'RVOL':round(rvol,3),'CMF20':round(cmf,3),'OBV5_ORAN':round(obv_delta,3),'RET5':round(ret,3),'VERI_TURU':'FIYAT_HACIM_PROXY','KURUM_TEYIDI':'YOK'}
+    from daily_trade_plan import trade_plan
+    plan=trade_plan(x) if state in ('BIRIKIM_ADAYI','GUCLU_ALIM_IZI') else {}
+    return {**plan,'HISSE':symbol.removesuffix('.IS'),'VERI_TARIHI':str(x.index[-1].date()),'FIYAT':round(float(c.iloc[-1]),4), 'BALINA_IZI_SKOR':score,'ADAY_TIPI':state,'RVOL':round(rvol,3),'CMF20':round(cmf,3),'OBV5_ORAN':round(obv_delta,3),'RET5':round(ret,3),'VERI_TURU':'FIYAT_HACIM_PROXY','KURUM_TEYIDI':'YOK'}
 
 
 def main():

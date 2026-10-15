@@ -32,6 +32,10 @@ def attach_live(candidates, live_rows, now=None):
         rec['CANLI_GIRIS']=rec.get('GIRIS')
         rec['DONUS_PUAN']=rec.get('PUAN')
         state=classify(rec,now)
+        if state['GIRIS_DURUMU']=='GIRIS_TETIKLENDI':
+            for key in ('GIRIS','STOP','HEDEF','KAZANC_%'):
+                if key in rec:out.at[idx,key]=rec[key]
+
         for key,value in state.items():out.at[idx,key]=value
         for key in ('HISSE_BAR_ZAMANI','CANLI_GIRIS','DONUS_PUAN','RVOL3','VWAP_%','DI_SPREAD','TEPKI_%'):
             if key in rec:out.at[idx,key]=rec[key]

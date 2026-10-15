@@ -3,9 +3,10 @@ from datetime import date,timedelta
 import os,uuid,hmac,re,io,zipfile
 import pandas as pd
 import streamlit as st
-from web_catalog import SCANS,TIMEFRAMES
+from web_catalog import SCANS,TOOLS,ALL_SCANS,GUIDES,guide_markdown
 from web_jobs import Jobs
 from result_view import trade_view
+from file_views import show_frame,result_kind,sort_files
 
 st.set_page_config(page_title='BIST · Sinyal Atölyesi',page_icon='📈',layout='wide')
 st.markdown('''<style>
@@ -27,10 +28,11 @@ if 'owner' not in st.session_state:st.session_state.owner=uuid.uuid4().hex
 owner=st.session_state.owner
 with st.sidebar:
     st.title('📈 BIST Atölyesi')
-    st.caption('Tüm motorlar · WEB 1.0')
-    group=st.selectbox('Tarama grubu',['Tümü','Günlük','Canlı','Temel','Test','iTick','Kayıtlar','Otomatik'])
-    choices=[n for n,(title,g) in SCANS.items() if group=='Tümü' or group==g]
-    scan=st.selectbox('Tarama',choices,format_func=lambda n:f'{n:02d} · {SCANS[n][0]}',index=choices.index(9) if 9 in choices else 0)
+    st.caption('6 ana tarama · WEB 6')
+    area=st.radio('Bölüm',['Ana taramalar','Test ve takip araçları'])
+    catalog=SCANS if area=='Ana taramalar' else TOOLS
+    choices=list(catalog)
+    scan=st.selectbox('Tarama',choices,format_func=lambda n:catalog[n][0])
     st.divider()
     with st.expander('Yönetici kontrolleri'):
         code=st.text_input('Yönetici kodu',type='password')
@@ -46,15 +48,23 @@ with st.sidebar:
 
 st.markdown('<div class="hero"><h2>Hazırlığı gör. Teyidi bekle. Sonucu ölç.</h2><p>Günlük Top10, uyuyan hisseler, balina izi ve tüm tarama motorları tek yerde.</p></div>',unsafe_allow_html=True)
 a,b,c=st.columns(3)
-a.metric('Tarama seçenekleri','28')
+a.metric('Ana taramalar',str(len(SCANS)))
 b.metric('Bekleyen işler',str(sum(j['state']=='Sirada' for j in list(jobs.items.values()))))
 c.metric('Otomatik plan','Açık' if jobs.auto else 'Kapalı')
-st.subheader(SCANS[scan][0])
+st.subheader(ALL_SCANS[scan][0])
+with st.expander('Bu tarama ne yapar?',expanded=True):
+    purpose,data,reading,when=GUIDES[scan]
+    st.write('**Ne arar?** '+purpose)
+    st.write('**Kullandığı veri:** '+data)
+    st.write('**Sonucu nasıl okuyacağım?** '+reading)
+    st.write('**Ne zaman kullanılır?** '+when)
+with st.expander('Tüm taramaların kılavuzu'):
+    for key,(title,_) in ALL_SCANS.items():
+        st.markdown('**'+title+'** — '+GUIDES[key][0])
+    st.download_button('Kılavuzu indir',guide_markdown().encode('utf-8'),file_name='BIST_TARAMA_KILAVUZU.md',mime='text/markdown')
 st.caption('Sonuçlar ortak sunucuda kaydedilir. Balina izi fiyat-hacim yorumudur; kurum kimliği veya otomatik işlem değildir.')
 params={'scan':scan}
 with st.container(border=True):
-    if scan<=8:
-        label=st.selectbox('Mum periyodu',list(TIMEFRAMES),index=1);params['tf']=TIMEFRAMES[label]
     if scan in (19,21):
         d1,d2=st.columns(2)
         start=d1.date_input('Başlangıç',date(2026,4,1),max_value=date.today()-timedelta(days=1))
@@ -99,12 +109,21 @@ def status():
     log_lines=[line.strip() for line in text.replace('\r','\n').splitlines() if line.strip()]
     readable='\n'.join(log_lines[-80:]) or 'Tarama adımları burada görünecek...'
     st.text_area('Tarama ilerlemesi',value=readable,height=360,disabled=True,key=f'log_{jid}')
-    files=job.get('files',[])
+    files=sort_files(job.get('files',[]))
     if files:
+        error_rows=0
+        for error_file in files:
+            if result_kind(pd.DataFrame(),error_file)=='error':
+                try:error_rows+=len(pd.read_csv(error_file))
+                except pd.errors.EmptyDataError:pass
+        if error_rows:st.warning(f'{error_rows} veri sorunu kaydı var. Hata raporlarını sonuç dosyası kutusundan açabilirsin; veri alınamayan hisseler başarı sayılmaz.')
         selected=st.selectbox('Sonuç dosyası',files,format_func=lambda p:p.name,key=f'file_{jid}')
         try:
             df=pd.read_csv(selected,encoding='utf-8-sig')
-            shown=trade_view(df) if any(c in df for c in ['HISSE','symbol','SYMBOL','Sembol','ticker']) else df
+            shown=show_frame(df,selected)
+            kind=result_kind(df,selected)
+            if kind=='error':st.warning('Bu dosya veri hata raporudur; aday listesi değildir.')
+            elif kind=='candidates' and df.empty:st.info('Koşullara uyan aday yok.')
             if 'VERI_TARIHI' in df:
                 dates=sorted(df['VERI_TARIHI'].dropna().astype(str).unique())
                 st.caption('Kullanılan kapanış tarihi: '+', '.join(dates))
@@ -117,8 +136,8 @@ def status():
             if 'GIRIS_TURU' in df and (df.GIRIS_TURU=='SON_TAMAMLANMIS_KAPANIS').any():
                 st.caption('Giriş son kapanış referansıdır. Hedef: eski direnç veya 2 ATR; stop: son 5 mum dip yapısı altında ATR payı. Gerçekleşmiş işlem veya tavan garantisi değildir.')
             st.dataframe(shown,use_container_width=True,hide_index=True)
-            if 'Hedef Fiyatı' in shown and (shown['Hedef Fiyatı'].isna().any() or shown['Stop Loss'].isna().any()):
-                st.caption('Hedef veya stop üretmeyen motorlarda ilgili alan boş kalır.')
+            if 'Hedef Fiyatı' in shown and ((shown['Hedef Fiyatı']=='—').any() or (shown['Stop Loss']=='—').any()):
+                st.caption('—: Bu satır için teknik plan üretilmemiş. Dağıtım izinde alım hedefi verilmez; eski dosyalar için yeni tarama gerekir.')
             st.download_button('CSV indir',shown.to_csv(index=False).encode('utf-8-sig'),file_name=selected.name,mime='text/csv',key=f'csv_{jid}')
         except (pd.errors.EmptyDataError,UnicodeError):st.info('Bu dosyada satır bulunmuyor.')
         buf=io.BytesIO()
@@ -126,7 +145,7 @@ def status():
             for p in files:
                 try:
                     table=pd.read_csv(p,encoding='utf-8-sig')
-                    if any(c in table for c in ['HISSE','symbol','SYMBOL','Sembol','ticker']):table=trade_view(table)
+                    table=show_frame(table,p)
                     z.writestr(p.name,table.to_csv(index=False).encode('utf-8-sig'))
                 except pd.errors.EmptyDataError:z.writestr(p.name,p.read_bytes())
         st.download_button('Tüm sonuçları ZIP indir',buf.getvalue(),file_name='bist_sonuclar.zip',mime='application/zip',key=f'zip_{jid}')
